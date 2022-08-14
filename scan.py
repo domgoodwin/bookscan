@@ -20,7 +20,10 @@ class Book:
         self.title = json['title']
         self.author = lookup_author_openlibrary(json['authors'][0]['key'])
         self.isbn = isbn
-        self.pages = json['number_of_pages']
+        if 'number of pages' in json:
+            self.pages = json['number_of_pages']
+        else:
+            self.pages = 0
         self.link = "https://openlibrary.org" + json['key']
 
     def info(self):
