@@ -21,11 +21,11 @@ func (b Book) Author() string {
 }
 
 func (b Book) Info() string {
-	return fmt.Sprintf("%v by %v", b.Title, b.Authors[0])
+	return fmt.Sprintf("%v by %v", b.Title, b.Author())
 }
 
 func (b Book) csvLine() string {
-	return fmt.Sprintf("%v,%v,%v,%v,%v", b.Title, b.Author(), b.ISBN, b.Pages, b.Link)
+	return fmt.Sprintf("\"%v\",\"%v\",\"%v\",\"%v\",\"%v\"", b.Title, b.Author(), b.ISBN, b.Pages, b.Link)
 }
 
 func (b Book) StoreInCSV(filePath string) error {

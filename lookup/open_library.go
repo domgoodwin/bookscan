@@ -2,6 +2,7 @@ package lookup
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -13,9 +14,13 @@ const (
 )
 
 func OpenLibraryLookup(isbn string) (*book.Book, error) {
-	rsp, err := http.Get(fmt.Sprintf("%v/isbn/%v.json", openLibraryURL, isbn))
+	url := fmt.Sprintf("%v/isbn/%v.json", openLibraryURL, isbn)
+	rsp, err := http.Get(url)
 	if err != nil {
 		return nil, err
+	}
+	if rsp.StatusCode != 200 {
+		return nil, errors.New(fmt.Sprintf("code %v", rsp.StatusCode))
 	}
 	defer rsp.Body.Close()
 	edition := &openLibraryEdition{}
@@ -47,7 +52,7 @@ func (o openLibraryEdition) Authors() ([]string, error) {
 	// If author is empty we need to lookup the work from our edition
 	authorKeys := o.AuthorKeys
 	if len(o.AuthorKeys) == 0 && len(o.Works) > 0 {
-		rsp, err := http.Get(fmt.Sprintf("%v%v.json", openLibraryURL, o.Works[0]))
+		rsp, err := http.Get(fmt.Sprintf("%v%v.json", openLibraryURL, o.Works[0].Key))
 		if err != nil {
 			return nil, err
 		}
@@ -62,7 +67,7 @@ func (o openLibraryEdition) Authors() ([]string, error) {
 	}
 
 	// Lookup author name from keys
-	for _, authorKey := range o.AuthorKeys {
+	for _, authorKey := range authorKeys {
 		rsp, err := http.Get(fmt.Sprintf("%v%v.json", openLibraryURL, authorKey.Key))
 		if err != nil {
 			return nil, err
@@ -86,7 +91,7 @@ type openLibraryEdition struct {
 	Title         string                 `json:"title"`
 	Identifiers   openLibraryIdentifiers `json:"identifiers"`
 	PublishDate   string                 `json:"publish_date"`
-	Works         []string               `json:"works"`
+	Works         []openLibraryKey       `json:"works"`
 	ISBN          string
 }
 
@@ -109,6 +114,6 @@ type openLibraryKey struct {
 }
 
 type openLibraryIdentifiers struct {
-	Goodreads string `json:"goodreads"`
-	Amazon    string `json:"amazon"`
+	Goodreads []string `json:"goodreads"`
+	Amazon    []string `json:"amazon"`
 }

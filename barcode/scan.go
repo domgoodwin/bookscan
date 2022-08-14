@@ -5,9 +5,12 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"regexp"
+	"strings"
 	"time"
 
 	"github.com/domgoodwin/bookscan/lookup"
+	"github.com/faiface/beep"
 	"github.com/faiface/beep/mp3"
 	"github.com/faiface/beep/speaker"
 )
@@ -19,24 +22,55 @@ func WaitForScan() {
 	fmt.Println("bookscan v0.1")
 	fmt.Println("---------------------")
 
+	var streamer beep.StreamSeekCloser
+	setupBeep(streamer)
+	defer streamer.Close()
+
 	for true {
 		fmt.Print("scan book-> ")
-		beep()
+		playBeep(streamer)
 		text, _ := reader.ReadString('\n')
-		book, err := lookup.LookupISBN(text)
+		found, isbn := trimAndValidate(text)
+		fmt.Println(isbn)
+		if !found {
+			fmt.Println("invalid isbn, ignoring.")
+		}
+
+		book, err := lookup.LookupISBN(isbn)
 		if err != nil {
 			fmt.Println("lookup err: %", err)
+			continue
 		}
 		fmt.Println(book.Info())
 		err = book.StoreInCSV(csvFilePath)
 		if err != nil {
 			fmt.Println("csv err: %", err)
+			continue
 		}
 	}
 }
 
-func beep() {
-	f, err := os.Open("Rockafeller Skank.mp3")
+func trimAndValidate(text string) (bool, string) {
+	out := strings.TrimRight(text, "\n")
+	out = strings.TrimRight(out, "\r")
+	out = strings.Replace(out, "-", "", -1)
+	out = strings.Replace(out, " ", "", -1)
+	out = strings.Replace(out, "isbn", "", -1)
+
+	re13 := regexp.MustCompile(`[0-9]{13}`)
+	re10 := regexp.MustCompile(`[0-9]{10}`)
+
+	if re13.MatchString(out) {
+		return true, out
+	}
+	if re10.MatchString(out) {
+		return true, out
+	}
+	return false, out
+}
+
+func setupBeep(streamer beep.StreamSeekCloser) {
+	f, err := os.Open("./assets/beep.mp3")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -45,8 +79,14 @@ func beep() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer streamer.Close()
+
 	speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/10))
 
-	speaker.Play(streamer)
+}
+func playBeep(streamer beep.StreamSeekCloser) {
+	done := make(chan bool)
+	speaker.Play(beep.Seq(streamer, beep.Callback(func() {
+		done <- true
+	})))
+	<-done
 }
