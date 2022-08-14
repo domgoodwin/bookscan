@@ -73,10 +73,12 @@ def lookup_author_openlibrary(json):
         work_id = json['works'][0]['key']
         url = "https://openlibrary.org{0}.json".format(work_id)
         try: 
+            print(url)
             rsp = requests.get(url)
             if rsp.status_code != 200:
                 print("non 200: {0}, {1}".format(rsp.status_code, rsp.content))
-            author_id = json['authors'][0]['author']['key']
+            work_json = rsp.json()
+            author_id = work_json['authors'][0]['author']['key']
         except Exception as err:
             print("error occured: {0}".format(err))
     url = "https://openlibrary.org{0}.json".format(author_id)
