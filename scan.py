@@ -1,6 +1,7 @@
 import os, requests
 from datetime import datetime
 import pyttsx3
+import winsound
 engine = pyttsx3.init()
 
 
@@ -72,6 +73,9 @@ def lookup_author_openlibrary(author_id):
 
 
 while True:
+    frequency = 2500  # Set Frequency To 2500 Hertz
+    duration = 250  # Set Duration To 1000 ms == 1 second
+    winsound.Beep(frequency, duration)
     isbn = input("scan book... ")
     book = Book()
     book.lookup(isbn)
