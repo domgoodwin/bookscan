@@ -18,7 +18,7 @@ class Book:
     
     def import_openlibrary(self, isbn, json):
         self.title = json['title']
-        self.author = lookup_author_openlibrary(json['authors'][0]['key'])
+        self.author = lookup_author_openlibrary(json)
         self.isbn = isbn
         if 'number of pages' in json:
             self.pages = json['number_of_pages']
@@ -64,7 +64,21 @@ def lookup_isbn_openlibrary(isbn):
     except Exception as err:
         print("error occured: {0}".format(err))
 
-def lookup_author_openlibrary(author_id):
+def lookup_author_openlibrary(json):
+    author_id = ""
+    if 'authors' in json:
+        author_id = json['authors'][0]['key']
+    else:
+        ## lookup author from work
+        work_id = json['works'][0].key
+        url = "https://openlibrary.org{0}.json".format(work_id)
+        try: 
+            rsp = requests.get(url)
+            if rsp.status_code != 200:
+                print("non 200: {0}, {1}".format(rsp.status_code, rsp.content))
+            author_id = json['authors'][0]['author']['key']
+        except Exception as err:
+            print("error occured: {0}".format(err))
     url = "https://openlibrary.org{0}.json".format(author_id)
     try: 
         rsp = requests.get(url)
@@ -73,7 +87,6 @@ def lookup_author_openlibrary(author_id):
         return rsp.json()['name']
     except Exception as err:
         print("error occured: {0}".format(err))
-
 
 while True:
     frequency = 2500  # Set Frequency To 2500 Hertz
