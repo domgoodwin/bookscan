@@ -31,7 +31,7 @@ class Book:
     def store_csv(self):
         # Less efficient opening and closing file each time but means we don't lose book info if program errors
         file = open(out_file, 'a')
-        file.write("{},{},{},{},{}".format(self.title, self.author, self.isbn, self.pages, self.link))
+        file.write("{},{},{},{},{}\n".format(self.title, self.author, self.isbn, self.pages, self.link))
         file.close()
 
 def lookup_isbn_google(isbn):
