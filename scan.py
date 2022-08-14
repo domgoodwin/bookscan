@@ -70,7 +70,7 @@ def lookup_author_openlibrary(json):
         author_id = json['authors'][0]['key']
     else:
         ## lookup author from work
-        work_id = json['works'][0].key
+        work_id = json['works'][0]['key']
         url = "https://openlibrary.org{0}.json".format(work_id)
         try: 
             rsp = requests.get(url)
