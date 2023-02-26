@@ -17,14 +17,18 @@ import (
 
 const csvFilePath = "./books.csv"
 
+var disableBeep = false
+
 func WaitForScan() {
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Println("bookscan v0.1")
 	fmt.Println("---------------------")
 
 	var streamer beep.StreamSeekCloser
-	setupBeep(streamer)
-	defer streamer.Close()
+	if os.Getenv("ENABLE_BEEP") == "true" {
+		disableBeep = true
+		setupBeep(streamer)
+	}
 
 	for true {
 		fmt.Print("scan book-> ")
@@ -81,9 +85,12 @@ func setupBeep(streamer beep.StreamSeekCloser) {
 	}
 
 	speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/10))
-
 }
 func playBeep(streamer beep.StreamSeekCloser) {
+	if disableBeep {
+		return
+	}
+
 	done := make(chan bool)
 	speaker.Play(beep.Seq(streamer, beep.Callback(func() {
 		done <- true

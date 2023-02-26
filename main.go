@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/domgoodwin/bookscan/barcode"
+	"github.com/domgoodwin/bookscan/cmd"
 )
 
 func main() {
-	barcode.WaitForScan()
+	cmd.Execute()
 }

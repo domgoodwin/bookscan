@@ -24,6 +24,16 @@ func (b Book) Info() string {
 	return fmt.Sprintf("%v by %v", b.Title, b.Author())
 }
 
+func (b Book) FullInfo() string {
+	return fmt.Sprintf(`
+	Title: %v
+	Authors: %v
+	ISBN: %v
+	Pages: %v
+	Link: %v
+	`, b.Title, b.Authors, b.ISBN, b.Pages, b.Link)
+}
+
 func (b Book) csvLine() string {
 	return fmt.Sprintf("\"%v\",\"%v\",\"%v\",\"%v\",\"%v\"", b.Title, b.Author(), b.ISBN, b.Pages, b.Link)
 }
