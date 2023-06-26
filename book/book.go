@@ -34,6 +34,16 @@ func (b Book) FullInfo() string {
 	`, b.Title, b.Authors, b.ISBN, b.Pages, b.Link)
 }
 
+func (b Book) FullInfoFields() map[string]string {
+	return map[string]string{
+		"title":   b.Title,
+		"authors": fmt.Sprint(b.Authors),
+		"isbn":    b.ISBN,
+		"pages":   fmt.Sprint(b.Pages),
+		"link":    b.Link,
+	}
+}
+
 func (b Book) csvLine() string {
 	return fmt.Sprintf("\"%v\",\"%v\",\"%v\",\"%v\",\"%v\"", b.Title, b.Author(), b.ISBN, b.Pages, b.Link)
 }
