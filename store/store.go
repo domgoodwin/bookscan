@@ -40,6 +40,10 @@ func (s *Store) StoreBook(b *book.Book) bool {
 }
 
 func (s *Store) LoadBooksFromCSV() {
+	if os.Getenv("CSV_CACHE") == "false" {
+		logrus.Info("CSV cache disabled")
+		return
+	}
 	count := 0
 	file, err := os.Open(csvFilePath)
 	if err != nil {
@@ -62,6 +66,10 @@ func (s *Store) LoadBooksFromCSV() {
 }
 
 func (s *Store) LoadBooksFromNotion(ctx context.Context) {
+	if os.Getenv("NOTION_CACHE") == "false" {
+		logrus.Info("Notion cache disabled")
+		return
+	}
 	books, err := notion.GetPagesFromDatabase(ctx)
 	if err != nil {
 		logrus.Fatal(err)

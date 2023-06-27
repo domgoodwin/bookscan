@@ -55,6 +55,9 @@ func (b Book) csvLine() string {
 }
 
 func (b Book) StoreInCSV() error {
+	if os.Getenv("CSV_SAVE") == "false" {
+		return nil
+	}
 	f, err := os.OpenFile(csvFilePath,
 		os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {

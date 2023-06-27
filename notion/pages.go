@@ -2,6 +2,7 @@ package notion
 
 import (
 	"context"
+	"os"
 
 	"github.com/domgoodwin/bookscan/book"
 	"github.com/jomei/notionapi"
@@ -9,7 +10,7 @@ import (
 
 const (
 	booksDatabaseID = "4f311bbe86ce4dd4bdae93fa1206328f"
-	columnTitle      = "Title"
+	columnTitle     = "Title"
 	columnAuthors   = "Authors"
 	columnISBN      = "ISBN"
 	columnLink      = "Link"
@@ -17,6 +18,9 @@ const (
 )
 
 func AddBookToDatabase(ctx context.Context, book *book.Book) (string, error) {
+	if os.Getenv("NOTION_SAVE") == "false" {
+		return "", nil
+	}
 	page, err := client.Page.Create(ctx, &notionapi.PageCreateRequest{
 		Parent: notionapi.Parent{
 			Type:       notionapi.ParentTypeDatabaseID,
