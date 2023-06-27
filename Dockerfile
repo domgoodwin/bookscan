@@ -10,4 +10,4 @@ COPY ./ ./
 
 RUN CGO_ENABLED=0 GOOS=linux go build -o /bookscan
 
-CMD ["bookscan", "api"]
+CMD ["/bookscan", "api"]
