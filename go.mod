@@ -55,11 +55,11 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-replace (
-	github.com/domgoodwin/bookscan/barcode => ./barcode
-	github.com/domgoodwin/bookscan/book => ./book
-	github.com/domgoodwin/bookscan/cmd => ./cmd
-	github.com/domgoodwin/bookscan/lookup => ./lookup
-	github.com/domgoodwin/bookscan/notion => ./notion
-	github.com/domgoodwin/bookscan/store => ./store
-)
+// replace (
+// 	github.com/domgoodwin/bookscan/barcode => ./barcode
+// 	github.com/domgoodwin/bookscan/book => ./book
+// 	github.com/domgoodwin/bookscan/cmd => ./cmd
+// 	github.com/domgoodwin/bookscan/lookup => ./lookup
+// 	github.com/domgoodwin/bookscan/notion => ./notion
+// 	github.com/domgoodwin/bookscan/store => ./store
+// )
