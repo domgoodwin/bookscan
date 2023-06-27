@@ -15,8 +15,6 @@ import (
 	"github.com/faiface/beep/speaker"
 )
 
-const csvFilePath = "./books.csv"
-
 var disableBeep = false
 
 func WaitForScan() {
@@ -46,7 +44,7 @@ func WaitForScan() {
 			continue
 		}
 		fmt.Println(book.Info())
-		err = book.StoreInCSV(csvFilePath)
+		err = book.StoreInCSV()
 		if err != nil {
 			fmt.Println("csv err: %", err)
 			continue

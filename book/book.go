@@ -3,14 +3,18 @@ package book
 import (
 	"fmt"
 	"os"
+	"strings"
 )
 
+const csvFilePath = "./books.csv"
+
 type Book struct {
-	Title   string
-	Authors []string
-	ISBN    string
-	Pages   int
-	Link    string
+	Title    string
+	Authors  []string
+	ISBN     string
+	Pages    int
+	Link     string
+	CoverURL string
 }
 
 func (b Book) Author() string {
@@ -31,25 +35,27 @@ func (b Book) FullInfo() string {
 	ISBN: %v
 	Pages: %v
 	Link: %v
-	`, b.Title, b.Authors, b.ISBN, b.Pages, b.Link)
+	Cover URL: %v
+	`, b.Title, b.Authors, b.ISBN, b.Pages, b.Link, b.CoverURL)
 }
 
 func (b Book) FullInfoFields() map[string]string {
 	return map[string]string{
-		"title":   b.Title,
-		"authors": fmt.Sprint(b.Authors),
-		"isbn":    b.ISBN,
-		"pages":   fmt.Sprint(b.Pages),
-		"link":    b.Link,
+		"title":     b.Title,
+		"authors":   strings.Join(b.Authors, ";"),
+		"isbn":      b.ISBN,
+		"pages":     fmt.Sprint(b.Pages),
+		"link":      b.Link,
+		"cover_url": b.CoverURL,
 	}
 }
 
 func (b Book) csvLine() string {
-	return fmt.Sprintf("\"%v\",\"%v\",\"%v\",\"%v\",\"%v\"", b.Title, b.Author(), b.ISBN, b.Pages, b.Link)
+	return fmt.Sprintf("\"%v\",\"%v\",\"%v\",\"%v\",\"%v\",\"%v\"", b.Title, b.Author(), b.ISBN, b.Pages, b.Link, b.CoverURL)
 }
 
-func (b Book) StoreInCSV(filePath string) error {
-	f, err := os.OpenFile(filePath,
+func (b Book) StoreInCSV() error {
+	f, err := os.OpenFile(csvFilePath,
 		os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return err

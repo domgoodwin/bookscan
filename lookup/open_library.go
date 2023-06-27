@@ -10,7 +10,8 @@ import (
 )
 
 const (
-	openLibraryURL = "https://openlibrary.org"
+	openLibraryURL       = "https://openlibrary.org"
+	openLibraryCoversURL = "https://covers.openlibrary.org"
 )
 
 func OpenLibraryLookup(isbn string) (*book.Book, error) {
@@ -39,11 +40,12 @@ func (o openLibraryEdition) Book() (*book.Book, error) {
 		return nil, err
 	}
 	return &book.Book{
-		Title:   o.Title,
-		Authors: authors,
-		ISBN:    o.ISBN,
-		Pages:   o.NumberOfPages,
-		Link:    fmt.Sprintf("%v%v", openLibraryURL, o.Key),
+		Title:    o.Title,
+		Authors:  authors,
+		ISBN:     o.ISBN,
+		Pages:    o.NumberOfPages,
+		Link:     fmt.Sprintf("%v%v", openLibraryURL, o.Key),
+		CoverURL: o.coverURL(),
 	}, nil
 }
 
@@ -80,7 +82,13 @@ func (o openLibraryEdition) Authors() ([]string, error) {
 		authors = append(authors, author.Name)
 	}
 	return authors, nil
+}
 
+func (o openLibraryEdition) coverURL() string {
+	if len(o.Covers) == 0 {
+		return ""
+	}
+	return fmt.Sprintf("%s/b/id/%v-L.jpg", openLibraryCoversURL, o.Covers[0])
 }
 
 type openLibraryEdition struct {
@@ -92,6 +100,7 @@ type openLibraryEdition struct {
 	Identifiers   openLibraryIdentifiers `json:"identifiers"`
 	PublishDate   string                 `json:"publish_date"`
 	Works         []openLibraryKey       `json:"works"`
+	Covers        []int                  `json:"covers"`
 	ISBN          string
 }
 
