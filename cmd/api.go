@@ -63,6 +63,7 @@ func handlePUTStore(c *gin.Context) {
 	}
 
 	found := s.StoreBook(book)
+	url := ""
 	// Only store in CSV if not found
 	if !found {
 		err = book.StoreInCSV()
@@ -70,11 +71,11 @@ func handlePUTStore(c *gin.Context) {
 			errorResponse(c, err)
 			return
 		}
-	}
-	url, err := notion.AddBookToDatabase(c, book)
-	if err != nil {
-		errorResponse(c, err)
-		return
+		url, err = notion.AddBookToDatabase(c, book)
+		if err != nil {
+			errorResponse(c, err)
+			return
+		}
 	}
 
 	c.JSON(http.StatusOK, map[string]interface{}{
