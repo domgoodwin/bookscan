@@ -6,6 +6,7 @@ import (
 
 	"github.com/domgoodwin/bookscan/book"
 	"github.com/jomei/notionapi"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -17,26 +18,37 @@ const (
 	columnPages     = "Pages"
 )
 
-func AddBookToDatabase(ctx context.Context, book *book.Book) (string, error) {
+func AddBookToDatabase(ctx context.Context, book *book.Book, databaseID string) (string, error) {
+	if databaseID == "" {
+		databaseID = booksDatabaseID
+	}
+	logrus.Infof("saving %v in %v", book.Title, databaseID)
 	if os.Getenv("NOTION_SAVE") == "false" {
 		return "", nil
 	}
-	page, err := client.Page.Create(ctx, &notionapi.PageCreateRequest{
-		Parent: notionapi.Parent{
-			Type:       notionapi.ParentTypeDatabaseID,
-			DatabaseID: booksDatabaseID,
-		},
-		Properties: bookToDatabaseProperties(book),
-		Cover: &notionapi.Image{
+
+	var bookCover *notionapi.Image
+	if book.CoverURL != "" {
+		bookCover = &notionapi.Image{
 			Type: notionapi.FileTypeExternal,
 			External: &notionapi.FileObject{
 				URL: book.CoverURL,
 			},
+		}
+	}
+	page, err := client.Page.Create(ctx, &notionapi.PageCreateRequest{
+		Parent: notionapi.Parent{
+			Type:       notionapi.ParentTypeDatabaseID,
+			DatabaseID: notionapi.DatabaseID(databaseID),
 		},
+		Properties: bookToDatabaseProperties(book),
+		Cover:      bookCover,
 	})
 	if err != nil {
+		logrus.Errorf("error: %v", err)
 		return "", err
 	}
+	logrus.Infof("saving %v, url: %v", book.Title, page.URL)
 	return page.URL, nil
 }
 

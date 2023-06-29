@@ -7,17 +7,20 @@ import (
 	"github.com/jomei/notionapi"
 )
 
-func GetPagesFromDatabase(ctx context.Context) ([]*book.Book, error) {
+func GetPagesFromDatabase(ctx context.Context, databaseID string) ([]*book.Book, string, error) {
+	if databaseID == "" {
+		databaseID = booksDatabaseID
+	}
 	var books []*book.Book
 	var nextCursor notionapi.Cursor
 	for {
 
-		rsp, err := client.Database.Query(ctx, booksDatabaseID, &notionapi.DatabaseQueryRequest{
+		rsp, err := client.Database.Query(ctx, notionapi.DatabaseID(databaseID), &notionapi.DatabaseQueryRequest{
 			PageSize:    100,
 			StartCursor: nextCursor,
 		})
 		if err != nil {
-			return nil, err
+			return nil, "", err
 		}
 
 		for _, page := range rsp.Results {
@@ -30,7 +33,7 @@ func GetPagesFromDatabase(ctx context.Context) ([]*book.Book, error) {
 		nextCursor = rsp.NextCursor
 	}
 
-	return books, nil
+	return books, databaseID, nil
 }
 
 func notionPageToBook(p notionapi.Page) *book.Book {

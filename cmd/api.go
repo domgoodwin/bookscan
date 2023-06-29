@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/domgoodwin/bookscan/book"
 	"github.com/domgoodwin/bookscan/lookup"
 	"github.com/domgoodwin/bookscan/notion"
 	"github.com/domgoodwin/bookscan/store"
@@ -36,33 +37,52 @@ var apiCmd = &cobra.Command{
 func setupRoutes(r *gin.Engine) {
 	r.GET("/lookup", handleGETLookup)
 	r.PUT("/store", handlePUTStore)
+	r.PUT("/cache/update", handlePUTUpdateCache)
+	r.GET("/cache/info", handleGETCacheInfo)
 }
 
 func handleGETLookup(c *gin.Context) {
 	isbn := c.Query("isbn")
-	book, err := lookup.LookupISBN(isbn)
+	book, found, err := lookupISBN(isbn)
 	if err != nil {
 		c.JSON(mapErrorToCode(err), gin.H{
 			"error": err.Error(),
 		})
-		return
 	}
-	c.JSON(http.StatusOK, book.FullInfoFields())
+
+	c.JSON(http.StatusOK, map[string]interface{}{
+		"book":           book.FullInfoFields(),
+		"already_stored": found,
+	})
+}
+
+func lookupISBN(isbn string) (*book.Book, bool, error) {
+	var err error
+	book, found := s.CheckIfBookInCache(isbn)
+	if !found {
+		book, err = lookup.LookupISBN(isbn)
+		if err != nil {
+			return nil, false, err
+		}
+	}
+	return book, found, nil
 }
 
 func handlePUTStore(c *gin.Context) {
-	var info bookInfo
-	var isbn string
-	if c.Bind(&info) == nil {
-		isbn = info.ISBN
-	}
-	book, err := lookup.LookupISBN(isbn)
+	var req putBookRequest
+	err := c.Bind(&req)
 	if err != nil {
 		errorResponse(c, err)
 		return
 	}
 
-	found := s.StoreBook(book)
+	book, found, err := lookupISBN(req.ISBN)
+	if err != nil {
+		c.JSON(mapErrorToCode(err), gin.H{
+			"error": err.Error(),
+		})
+	}
+
 	url := ""
 	// Only store in CSV if not found
 	if !found {
@@ -71,11 +91,12 @@ func handlePUTStore(c *gin.Context) {
 			errorResponse(c, err)
 			return
 		}
-		url, err = notion.AddBookToDatabase(c, book)
+		url, err = notion.AddBookToDatabase(c, book, req.NotionDatabaseID)
 		if err != nil {
 			errorResponse(c, err)
 			return
 		}
+		s.StoreBook(book)
 	}
 
 	c.JSON(http.StatusOK, map[string]interface{}{
@@ -85,14 +106,52 @@ func handlePUTStore(c *gin.Context) {
 	})
 }
 
+func handlePUTUpdateCache(c *gin.Context) {
+	var req updateCacheRequest
+	err := c.Bind(&req)
+	if err != nil {
+		errorResponse(c, err)
+		return
+	}
+
+	var length int
+	if req.ClearCache {
+		length = s.ClearCache()
+	}
+
+	err = s.LoadBooksFromNotion(c, req.NotionDatabaseID)
+	if err != nil {
+		errorResponse(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, map[string]interface{}{
+		"deleted_cache_items_count": length,
+		"cache_size":                s.Length(),
+	})
+}
+
+func handleGETCacheInfo(c *gin.Context) {
+	c.JSON(http.StatusOK, map[string]interface{}{
+		"database_id": s.DatabaseID(),
+		"cache_size":  s.Length(),
+	})
+}
+
 func errorResponse(c *gin.Context, err error) {
 	c.JSON(mapErrorToCode(err), gin.H{
 		"error": err.Error(),
 	})
 }
 
-type bookInfo struct {
-	ISBN string `json:"isbn" binding:"required"`
+type putBookRequest struct {
+	ISBN             string `json:"isbn" binding:"required"`
+	NotionDatabaseID string `json:"notion_database_id" binding:"required"`
+}
+
+type updateCacheRequest struct {
+	NotionDatabaseID string `json:"notion_database_id"`
+	ClearCache       bool   `json:"clear_cache"`
 }
 
 func mapErrorToCode(err error) int {

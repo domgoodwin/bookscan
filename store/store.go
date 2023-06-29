@@ -15,7 +15,8 @@ import (
 const csvFilePath = "./books.csv"
 
 type Store struct {
-	books map[string]*book.Book
+	books      map[string]*book.Book
+	databaseID string
 }
 
 var store *Store
@@ -27,7 +28,7 @@ func SetupStore() *Store {
 		}
 	}
 	store.LoadBooksFromCSV()
-	store.LoadBooksFromNotion(context.Background())
+	store.LoadBooksFromNotion(context.Background(), "")
 	return store
 }
 
@@ -37,6 +38,26 @@ func (s *Store) StoreBook(b *book.Book) bool {
 		s.books[b.ISBN] = b
 	}
 	return found
+}
+
+func (s *Store) CheckIfBookInCache(isbn string) (*book.Book, bool) {
+	book, found := s.books[isbn]
+	return book, found
+}
+
+func (s *Store) ClearCache() int {
+	logrus.Info("clearing cache")
+	oldLength := len(s.books)
+	s.books = make(map[string]*book.Book)
+	return oldLength
+}
+
+func (s *Store) Length() int {
+	return len(s.books)
+}
+
+func (s *Store) DatabaseID() string {
+	return s.databaseID
 }
 
 func (s *Store) LoadBooksFromCSV() {
@@ -65,19 +86,21 @@ func (s *Store) LoadBooksFromCSV() {
 	logrus.Infof("Loaded %v books from CSV", count)
 }
 
-func (s *Store) LoadBooksFromNotion(ctx context.Context) {
+func (s *Store) LoadBooksFromNotion(ctx context.Context, databaseID string) error {
 	if os.Getenv("NOTION_CACHE") == "false" {
 		logrus.Info("Notion cache disabled")
-		return
+		return nil
 	}
-	books, err := notion.GetPagesFromDatabase(ctx)
+	books, databaseID, err := notion.GetPagesFromDatabase(ctx, databaseID)
 	if err != nil {
-		logrus.Fatal(err)
+		return err
 	}
 	for _, b := range books {
 		s.StoreBook(b)
 	}
 	logrus.Infof("Loaded %v books from Notion", len(books))
+	s.databaseID = databaseID
+	return nil
 }
 
 func CSVBookToBook(line string) *book.Book {
