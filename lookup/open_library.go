@@ -2,7 +2,6 @@ package lookup
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 
@@ -14,14 +13,20 @@ const (
 	openLibraryCoversURL = "https://covers.openlibrary.org"
 )
 
-func OpenLibraryLookup(isbn string) (*book.Book, error) {
+type openLibraryDataStore struct{}
+
+func (o openLibraryDataStore) Name() string {
+	return "openlibrary"
+}
+
+func (o openLibraryDataStore) LookupISBN(isbn string) (*book.Book, error) {
 	url := fmt.Sprintf("%v/isbn/%v.json", openLibraryURL, isbn)
 	rsp, err := http.Get(url)
 	if err != nil {
 		return nil, err
 	}
 	if rsp.StatusCode != 200 {
-		return nil, errors.New(fmt.Sprintf("code %v", rsp.StatusCode))
+		return nil, fmt.Errorf("code %v", rsp.StatusCode)
 	}
 	defer rsp.Body.Close()
 	edition := &openLibraryEdition{}
