@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"strconv"
 
 	"github.com/domgoodwin/bookscan/items"
 	"github.com/sirupsen/logrus"
@@ -52,7 +51,8 @@ func (o discogsDataStore) LookupBarcode(barcode string) (*items.Record, error) {
 	}
 	// not sure if we need this
 	if len(response.Results) > 1 {
-		logrus.Infof("found too many records: %v", response)
+		logrus.Infof("found too many records")
+		logrus.Debugf("records: %v", response)
 	}
 	logrus.Debugf("found record in rsp: %v", response)
 	discogsResult := response.Results[0]
@@ -64,15 +64,11 @@ func (d discogsDatabaseResult) Record(barcode string) (*items.Record, error) {
 	if err != nil {
 		return nil, err
 	}
-	year, err := strconv.ParseInt(d.Year, 10, 0)
-	if err != nil {
-		return nil, err
-	}
 	return &items.Record{
 		Title:    release.Title,
 		Artists:  release.GetArtists(),
 		Barcode:  barcode,
-		Year:     int(year),
+		Year:     release.Year,
 		Link:     d.Link(),
 		CoverURL: "",
 	}, nil

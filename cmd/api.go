@@ -82,7 +82,7 @@ func handleGETRecordLookup(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, map[string]interface{}{
-		"book":           record.FullInfoFields(),
+		"record":         record.FullInfoFields(),
 		"already_stored": found,
 	})
 }

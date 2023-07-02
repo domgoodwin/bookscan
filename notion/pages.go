@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"os"
+	"strings"
 
 	"github.com/domgoodwin/bookscan/items"
 	"github.com/jomei/notionapi"
@@ -108,7 +109,7 @@ func bookToDatabaseProperties(b *items.Book) notionapi.Properties {
 		authors.MultiSelect = append(
 			authors.MultiSelect,
 			notionapi.Option{
-				Name: author,
+				Name: sanitseSelectValue(author),
 			},
 		)
 	}
@@ -154,7 +155,7 @@ func recordToDatabaseProperties(b *items.Record) notionapi.Properties {
 		artists.MultiSelect = append(
 			artists.MultiSelect,
 			notionapi.Option{
-				Name: artist,
+				Name: sanitseSelectValue(artist),
 			},
 		)
 	}
@@ -189,4 +190,8 @@ func recordToDatabaseProperties(b *items.Record) notionapi.Properties {
 			URL:  b.Link,
 		},
 	}
+}
+
+func sanitseSelectValue(in string) string {
+	return strings.Replace(in, ",", " ", -1)
 }
