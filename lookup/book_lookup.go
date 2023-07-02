@@ -3,25 +3,25 @@ package lookup
 import (
 	"errors"
 
-	"github.com/domgoodwin/bookscan/book"
+	"github.com/domgoodwin/bookscan/items"
 	"github.com/sirupsen/logrus"
 )
 
-var datasources = map[BookDataSource]bool{
+var bookDatasources = map[BookDataSource]bool{
 	openLibraryDataStore{}:  false,
 	googlebooksDataSource{}: true,
 }
 
 type BookDataSource interface {
 	Name() string
-	LookupISBN(isbn string) (*book.Book, error)
+	LookupISBN(isbn string) (*items.Book, error)
 }
 
-func LookupISBN(isbn string) (*book.Book, error) {
+func LookupISBN(isbn string) (*items.Book, error) {
 	logrus.Info("looking up isbn ", map[string]string{
 		"isbn": isbn,
 	})
-	for d, enabled := range datasources {
+	for d, enabled := range bookDatasources {
 		if !enabled {
 			logrus.Info("skipping data source: ", d.Name())
 			continue

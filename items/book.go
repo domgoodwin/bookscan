@@ -1,4 +1,4 @@
-package book
+package items
 
 import (
 	"fmt"
@@ -15,6 +15,10 @@ type Book struct {
 	Pages    int
 	Link     string
 	CoverURL string
+}
+
+func (b Book) Type() string {
+	return ItemTypeBook
 }
 
 func (b Book) Author() string {

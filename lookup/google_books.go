@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/domgoodwin/bookscan/book"
+	"github.com/domgoodwin/bookscan/items"
 	"github.com/sirupsen/logrus"
 )
 
@@ -19,7 +19,7 @@ func (g googlebooksDataSource) Name() string {
 	return "googlebooks"
 }
 
-func (g googlebooksDataSource) LookupISBN(isbn string) (*book.Book, error) {
+func (g googlebooksDataSource) LookupISBN(isbn string) (*items.Book, error) {
 	logrus.Infof("looking up isbn with google books API: %v", isbn)
 	url := fmt.Sprintf("%v/volumes?q=isbn:%v", googlebooksURL, isbn)
 	rsp, err := http.Get(url)
@@ -61,8 +61,8 @@ type googlebooksVolume struct {
 	VolumeInfo googlebooksVolumeInfo `json:"volumeInfo"`
 }
 
-func (v googlebooksVolume) Book() *book.Book {
-	return &book.Book{
+func (v googlebooksVolume) Book() *items.Book {
+	return &items.Book{
 		Title:    v.VolumeInfo.Title,
 		Authors:  v.VolumeInfo.Authors,
 		ISBN:     v.ISBN(),

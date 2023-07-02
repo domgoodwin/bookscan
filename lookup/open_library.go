@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/domgoodwin/bookscan/book"
+	"github.com/domgoodwin/bookscan/items"
 )
 
 const (
@@ -19,7 +19,7 @@ func (o openLibraryDataStore) Name() string {
 	return "openlibrary"
 }
 
-func (o openLibraryDataStore) LookupISBN(isbn string) (*book.Book, error) {
+func (o openLibraryDataStore) LookupISBN(isbn string) (*items.Book, error) {
 	url := fmt.Sprintf("%v/isbn/%v.json", openLibraryURL, isbn)
 	rsp, err := http.Get(url)
 	if err != nil {
@@ -39,12 +39,12 @@ func (o openLibraryDataStore) LookupISBN(isbn string) (*book.Book, error) {
 	return edition.Book()
 }
 
-func (o openLibraryEdition) Book() (*book.Book, error) {
+func (o openLibraryEdition) Book() (*items.Book, error) {
 	authors, err := o.Authors()
 	if err != nil {
 		return nil, err
 	}
-	return &book.Book{
+	return &items.Book{
 		Title:    o.Title,
 		Authors:  authors,
 		ISBN:     o.ISBN,

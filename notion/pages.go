@@ -2,23 +2,31 @@ package notion
 
 import (
 	"context"
+	"errors"
 	"os"
 
-	"github.com/domgoodwin/bookscan/book"
+	"github.com/domgoodwin/bookscan/items"
 	"github.com/jomei/notionapi"
 	"github.com/sirupsen/logrus"
 )
 
 const (
-	booksDatabaseID = "4f311bbe86ce4dd4bdae93fa1206328f"
-	columnTitle     = "Title"
-	columnAuthors   = "Authors"
-	columnISBN      = "ISBN"
-	columnLink      = "Link"
-	columnPages     = "Pages"
+	booksDatabaseID   = "4f311bbe86ce4dd4bdae93fa1206328f"
+	recordsDatabaseID = "0821a1067b414e19923c4371250c8128"
+	// Both
+	columnTitle = "Title"
+	columnLink  = "Link"
+	// Book
+	columnAuthors = "Authors"
+	columnISBN    = "ISBN"
+	columnPages   = "Pages"
+	// Record
+	colummArtists = "Artists"
+	colummYear    = "Year"
+	columnBarcode = "Barcode"
 )
 
-func AddBookToDatabase(ctx context.Context, book *book.Book, databaseID string) (string, error) {
+func AddBookToDatabase(ctx context.Context, book *items.Book, databaseID string) (string, error) {
 	if databaseID == "" {
 		databaseID = booksDatabaseID
 	}
@@ -52,7 +60,45 @@ func AddBookToDatabase(ctx context.Context, book *book.Book, databaseID string) 
 	return page.URL, nil
 }
 
-func bookToDatabaseProperties(b *book.Book) notionapi.Properties {
+func AddRecordToDatabase(ctx context.Context, record *items.Record, databaseID string) (string, error) {
+	if record == nil {
+		return "", errors.New("nil record")
+	}
+	logrus.Infof("Adding record to database: %v", record)
+	if databaseID == "" {
+		databaseID = recordsDatabaseID
+	}
+	logrus.Infof("saving %v in %v", record.Title, databaseID)
+	if os.Getenv("NOTION_SAVE") == "false" {
+		return "", nil
+	}
+
+	var pageCover *notionapi.Image
+	if record.CoverURL != "" {
+		pageCover = &notionapi.Image{
+			Type: notionapi.FileTypeExternal,
+			External: &notionapi.FileObject{
+				URL: record.CoverURL,
+			},
+		}
+	}
+	page, err := client.Page.Create(ctx, &notionapi.PageCreateRequest{
+		Parent: notionapi.Parent{
+			Type:       notionapi.ParentTypeDatabaseID,
+			DatabaseID: notionapi.DatabaseID(databaseID),
+		},
+		Properties: recordToDatabaseProperties(record),
+		Cover:      pageCover,
+	})
+	if err != nil {
+		logrus.Errorf("error: %v", err)
+		return "", err
+	}
+	logrus.Infof("saving %v, url: %v", record.Title, page.URL)
+	return page.URL, nil
+}
+
+func bookToDatabaseProperties(b *items.Book) notionapi.Properties {
 
 	authors := notionapi.MultiSelectProperty{
 		Type:        notionapi.PropertyTypeMultiSelect,
@@ -91,6 +137,52 @@ func bookToDatabaseProperties(b *book.Book) notionapi.Properties {
 		columnPages: notionapi.NumberProperty{
 			Type:   notionapi.PropertyTypeNumber,
 			Number: float64(b.Pages),
+		},
+		columnLink: notionapi.URLProperty{
+			Type: notionapi.PropertyTypeURL,
+			URL:  b.Link,
+		},
+	}
+}
+
+func recordToDatabaseProperties(b *items.Record) notionapi.Properties {
+	artists := notionapi.MultiSelectProperty{
+		Type:        notionapi.PropertyTypeMultiSelect,
+		MultiSelect: []notionapi.Option{},
+	}
+	for _, artist := range b.Artists {
+		artists.MultiSelect = append(
+			artists.MultiSelect,
+			notionapi.Option{
+				Name: artist,
+			},
+		)
+	}
+	return notionapi.Properties{
+		columnTitle: notionapi.TitleProperty{
+			Type: notionapi.PropertyTypeTitle,
+			Title: []notionapi.RichText{
+				{
+					Text: &notionapi.Text{
+						Content: b.Title,
+					},
+				},
+			},
+		},
+		colummArtists: artists,
+		columnBarcode: notionapi.RichTextProperty{
+			Type: notionapi.PropertyTypeRichText,
+			RichText: []notionapi.RichText{
+				{
+					Text: &notionapi.Text{
+						Content: b.Barcode,
+					},
+				},
+			},
+		},
+		colummYear: notionapi.NumberProperty{
+			Type:   notionapi.PropertyTypeNumber,
+			Number: float64(b.Year),
 		},
 		columnLink: notionapi.URLProperty{
 			Type: notionapi.PropertyTypeURL,
