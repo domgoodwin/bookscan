@@ -26,6 +26,18 @@ const (
 )
 
 func AddBookToDatabase(ctx context.Context, book *items.Book, databaseID string) (string, error) {
+
+	// Check Book doesn't exist
+	notionBook, notionURL, err := GetBookPageFromISBN(ctx, databaseID, book.ISBN)
+	if err != nil {
+		logrus.Error(err)
+		return "", err
+	}
+	if notionBook != nil {
+		logrus.Infof("Book %v already exists in database: %v", notionBook.ISBN, notionURL)
+		return notionURL, nil
+	}
+
 	if databaseID == "" {
 		return "", errors.New("book database ID must be supplied")
 	}

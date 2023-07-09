@@ -37,6 +37,31 @@ func GetBookPagesFromDatabase(ctx context.Context, databaseID string) ([]*items.
 	return books, databaseID, nil
 }
 
+func GetBookPageFromISBN(ctx context.Context, databaseID, ISBN string) (*items.Book, string, error) {
+	if databaseID == "" {
+		return nil, "", errors.New("book database ID must be supplied")
+	}
+
+	rsp, err := client.Database.Query(ctx, notionapi.DatabaseID(databaseID), &notionapi.DatabaseQueryRequest{
+		PageSize: 10,
+		Filter: notionapi.PropertyFilter{
+			Property: columnISBN,
+			RichText: &notionapi.TextFilterCondition{
+				Equals: ISBN,
+			},
+		},
+	})
+	if err != nil {
+		return nil, "", err
+	}
+
+	if len(rsp.Results) == 0 {
+		// Not found don't error
+		return nil, "", nil
+	}
+	return notionPageToBook(rsp.Results[0]), rsp.Results[0].URL, nil
+}
+
 func GetRecordPagesFromDatabase(ctx context.Context, databaseID string) ([]*items.Record, string, error) {
 	if databaseID == "" {
 		return nil, "", errors.New("book database ID must be supplied")
