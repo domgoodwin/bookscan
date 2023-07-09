@@ -12,8 +12,6 @@ import (
 )
 
 const (
-	booksDatabaseID   = "4f311bbe86ce4dd4bdae93fa1206328f"
-	recordsDatabaseID = "0821a1067b414e19923c4371250c8128"
 	// Both
 	columnTitle = "Title"
 	columnLink  = "Link"
@@ -29,7 +27,7 @@ const (
 
 func AddBookToDatabase(ctx context.Context, book *items.Book, databaseID string) (string, error) {
 	if databaseID == "" {
-		databaseID = booksDatabaseID
+		return "", errors.New("book database ID must be supplied")
 	}
 	logrus.Infof("saving %v in %v", book.Title, databaseID)
 	if os.Getenv("NOTION_SAVE") == "false" {
@@ -67,7 +65,7 @@ func AddRecordToDatabase(ctx context.Context, record *items.Record, databaseID s
 	}
 	logrus.Infof("Adding record to database: %v", record)
 	if databaseID == "" {
-		databaseID = recordsDatabaseID
+		return "", errors.New("book database ID must be supplied")
 	}
 	logrus.Infof("saving %v in %v", record.Title, databaseID)
 	if os.Getenv("NOTION_SAVE") == "false" {

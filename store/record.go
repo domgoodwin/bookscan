@@ -1,11 +1,8 @@
 package store
 
 import (
-	"bufio"
 	"context"
 	"os"
-	"strconv"
-	"strings"
 
 	"github.com/domgoodwin/bookscan/items"
 	"github.com/domgoodwin/bookscan/notion"
@@ -15,33 +12,44 @@ import (
 const recordCsvFilePath = "./records.csv"
 
 type RecordStorer struct {
-	records    map[string]*items.Record
+	// map of database ids to map of book isbns to books
+	records    map[string]map[string]*items.Record
 	databaseID string
 }
 
 func (s *RecordStorer) Setup() {
-	s.records = make(map[string]*items.Record)
-	s.LoadRecordsFromCSV()
-	s.LoadRecordsFromNotion(context.Background(), "")
-}
+	s.records = make(map[string]map[string]*items.Record)
 
-func (s *RecordStorer) StoreItem(r *items.Record) bool {
-	_, found := s.records[r.Barcode]
-	if !found {
-		s.records[r.Barcode] = r
+	for _, id := range []string{"0821a1067b414e19923c4371250c8128"} {
+		s.LoadRecordsFromNotion(context.Background(), id)
 	}
-	return found
 }
 
-func (s *RecordStorer) CheckIfItemInCache(barcode string) (*items.Record, bool) {
-	record, found := s.records[barcode]
+func (s *RecordStorer) StoreItem(databaseID string, r *items.Record) bool {
+	_, databaseFound := s.records[databaseID]
+	if !databaseFound {
+		s.records[databaseID] = make(map[string]*items.Record)
+	}
+	_, recordFound := s.records[databaseID][r.Barcode]
+	if !recordFound {
+		s.records[databaseID][r.Barcode] = r
+	}
+	return recordFound
+}
+
+func (s *RecordStorer) CheckIfItemInCache(databaseID, barcode string) (*items.Record, bool) {
+	_, found := s.records[databaseID]
+	if !found {
+		s.records[databaseID] = make(map[string]*items.Record)
+	}
+	record, found := s.records[databaseID][barcode]
 	return record, found
 }
 
-func (s *RecordStorer) ClearCache() int {
+func (s *RecordStorer) ClearCache(databaseID string) int {
 	logrus.Info("clearing cache")
-	oldLength := len(s.records)
-	s.records = make(map[string]*items.Record)
+	oldLength := len(s.records[databaseID])
+	s.records = make(map[string]map[string]*items.Record)
 	return oldLength
 }
 
@@ -51,32 +59,6 @@ func (s *RecordStorer) Length() int {
 
 func (s *RecordStorer) DatabaseID() string {
 	return s.databaseID
-}
-
-func (s *RecordStorer) LoadRecordsFromCSV() {
-	if os.Getenv("CSV_CACHE") == "false" {
-		logrus.Info("CSV cache disabled")
-		return
-	}
-	count := 0
-	file, err := os.Open(csvFilePath)
-	if err != nil {
-		logrus.Fatal(err)
-	}
-	defer file.Close()
-
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		count++
-		logrus.Debug(scanner.Text())
-		record := s.CSVRecordToRecord(scanner.Text())
-		s.StoreItem(record)
-	}
-
-	if err := scanner.Err(); err != nil {
-		logrus.Fatal(err)
-	}
-	logrus.Infof("Loaded %v records from CSV", count)
 }
 
 func (s *RecordStorer) LoadRecordsFromNotion(ctx context.Context, databaseID string) error {
@@ -89,30 +71,9 @@ func (s *RecordStorer) LoadRecordsFromNotion(ctx context.Context, databaseID str
 		return err
 	}
 	for _, r := range records {
-		s.StoreItem(r)
+		s.StoreItem(databaseID, r)
 	}
-	logrus.Infof("Loaded %v records from Notion", len(records))
+	logrus.Infof("Loaded %v records from Notion:%v", len(records), databaseID)
 	s.databaseID = databaseID
 	return nil
-}
-
-func (s *RecordStorer) CSVRecordToRecord(line string) *items.Record {
-	parts := strings.Split(line, ",")
-	if len(parts) != 6 {
-		logrus.Warn("Line doesn't have 6 parts", map[string]string{"line": line})
-		return nil
-	}
-
-	year, err := strconv.Atoi(removeQuotes(parts[3]))
-	if err != nil {
-		logrus.Error(err)
-	}
-	return &items.Record{
-		Title:    removeQuotes(parts[0]),
-		Artists:  strings.Split(removeQuotes(parts[1]), ";"),
-		Barcode:  removeQuotes(parts[2]),
-		Year:     year,
-		Link:     removeQuotes(parts[4]),
-		CoverURL: removeQuotes(parts[5]),
-	}
 }

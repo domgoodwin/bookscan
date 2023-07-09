@@ -2,6 +2,7 @@ package notion
 
 import (
 	"context"
+	"errors"
 
 	"github.com/domgoodwin/bookscan/items"
 	"github.com/jomei/notionapi"
@@ -9,7 +10,7 @@ import (
 
 func GetBookPagesFromDatabase(ctx context.Context, databaseID string) ([]*items.Book, string, error) {
 	if databaseID == "" {
-		databaseID = booksDatabaseID
+		return nil, "", errors.New("book database ID must be supplied")
 	}
 	var books []*items.Book
 	var nextCursor notionapi.Cursor
@@ -38,7 +39,7 @@ func GetBookPagesFromDatabase(ctx context.Context, databaseID string) ([]*items.
 
 func GetRecordPagesFromDatabase(ctx context.Context, databaseID string) ([]*items.Record, string, error) {
 	if databaseID == "" {
-		databaseID = recordsDatabaseID
+		return nil, "", errors.New("book database ID must be supplied")
 	}
 	var records []*items.Record
 	var nextCursor notionapi.Cursor

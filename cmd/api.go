@@ -45,7 +45,8 @@ func setupRoutes(r *gin.Engine) {
 
 func handleGETBookLookup(c *gin.Context) {
 	isbn := c.Query("isbn")
-	book, found, err := lookupISBN(isbn)
+	dbID := c.Query("database_id")
+	book, found, err := lookupISBN(dbID, isbn)
 	if err != nil {
 		c.JSON(mapErrorToCode(err), gin.H{
 			"error": err.Error(),
@@ -59,9 +60,9 @@ func handleGETBookLookup(c *gin.Context) {
 	})
 }
 
-func lookupISBN(isbn string) (*items.Book, bool, error) {
+func lookupISBN(notionDatabaseID, isbn string) (*items.Book, bool, error) {
 	var err error
-	book, found := store.BookStore.CheckIfItemInCache(isbn)
+	book, found := store.BookStore.CheckIfItemInCache(notionDatabaseID, isbn)
 	if !found {
 		book, err = lookup.LookupISBN(isbn)
 		if err != nil {
@@ -73,7 +74,8 @@ func lookupISBN(isbn string) (*items.Book, bool, error) {
 
 func handleGETRecordLookup(c *gin.Context) {
 	isbn := c.Query("barcode")
-	record, found, err := lookupRecordBarcode(isbn)
+	dbID := c.Query("database_id")
+	record, found, err := lookupRecordBarcode(dbID, isbn)
 	if err != nil {
 		c.JSON(mapErrorToCode(err), gin.H{
 			"error": err.Error(),
@@ -87,9 +89,9 @@ func handleGETRecordLookup(c *gin.Context) {
 	})
 }
 
-func lookupRecordBarcode(barcode string) (*items.Record, bool, error) {
+func lookupRecordBarcode(notionDatabaseID, barcode string) (*items.Record, bool, error) {
 	var err error
-	record, found := store.RecordStore.CheckIfItemInCache(barcode)
+	record, found := store.RecordStore.CheckIfItemInCache(notionDatabaseID, barcode)
 	if !found {
 		logrus.Infof("record not found in cache: %v", barcode)
 		record, err = lookup.LookupRecordBarcode(barcode)
@@ -110,7 +112,7 @@ func handlePUTBookStore(c *gin.Context) {
 		return
 	}
 
-	book, found, err := lookupISBN(req.ISBN)
+	book, found, err := lookupISBN(req.NotionDatabaseID, req.ISBN)
 	if err != nil {
 		c.JSON(mapErrorToCode(err), gin.H{
 			"error": err.Error(),
@@ -130,7 +132,7 @@ func handlePUTBookStore(c *gin.Context) {
 			errorResponse(c, err)
 			return
 		}
-		store.BookStore.StoreItem(book)
+		store.BookStore.StoreItem(req.NotionDatabaseID, book)
 	}
 
 	c.JSON(http.StatusOK, map[string]interface{}{
@@ -148,7 +150,7 @@ func handlePUTRecordStore(c *gin.Context) {
 		return
 	}
 
-	record, found, err := lookupRecordBarcode(req.Barcode)
+	record, found, err := lookupRecordBarcode(req.NotionDatabaseID, req.Barcode)
 	if err != nil {
 		c.JSON(mapErrorToCode(err), gin.H{
 			"error": err.Error(),
@@ -163,7 +165,7 @@ func handlePUTRecordStore(c *gin.Context) {
 			errorResponse(c, err)
 			return
 		}
-		store.RecordStore.StoreItem(record)
+		store.RecordStore.StoreItem(req.NotionDatabaseID, record)
 	}
 
 	c.JSON(http.StatusOK, map[string]interface{}{
@@ -183,10 +185,10 @@ func handlePUTUpdateCache(c *gin.Context) {
 
 	var bookLength, recordLength int
 	if req.ClearBooksCache {
-		bookLength = store.BookStore.ClearCache()
+		bookLength = store.BookStore.ClearCache(req.BooksNotionDatabaseID)
 	}
 	if req.ClearRecordsCache {
-		recordLength = store.RecordStore.ClearCache()
+		recordLength = store.RecordStore.ClearCache(req.RecordsNotionDatabaseID)
 	}
 
 	err = store.BookStore.LoadBooksFromNotion(c, req.BooksNotionDatabaseID)

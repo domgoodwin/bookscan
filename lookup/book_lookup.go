@@ -8,7 +8,7 @@ import (
 )
 
 var bookDatasources = map[BookDataSource]bool{
-	openLibraryDataStore{}:  false,
+	openLibraryDataStore{}:  true,
 	googlebooksDataSource{}: true,
 }
 
