@@ -23,4 +23,4 @@ jobs:
       uses: docker/build-push-action@v4
       with:
         push: true
-        tags: d0m182/app:latest,d0m182/bookscan:$(date +%s)
+        tags: d0m182/bookscan:latest
