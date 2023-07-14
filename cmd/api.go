@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/domgoodwin/bookscan/database"
 	"github.com/domgoodwin/bookscan/items"
 	"github.com/domgoodwin/bookscan/lookup"
 	"github.com/domgoodwin/bookscan/notion"
@@ -26,6 +27,10 @@ var apiCmd = &cobra.Command{
 	Use:   "api",
 	Short: "Start an API server",
 	Run: func(cmd *cobra.Command, args []string) {
+		err := database.Setup()
+		if err != nil {
+			panic(err)
+		}
 		r := gin.Default()
 		setupRoutes(r)
 		notion.SetupClient()
@@ -35,12 +40,16 @@ var apiCmd = &cobra.Command{
 }
 
 func setupRoutes(r *gin.Engine) {
+	r.GET("/", func(c *gin.Context) {
+		c.JSON(http.StatusOK, map[string]string{"app": "bookscan"})
+	})
 	r.GET("/book/lookup", handleGETBookLookup)
 	r.PUT("/book/store", handlePUTBookStore)
 	r.GET("/record/lookup", handleGETRecordLookup)
 	r.PUT("/record/store", handlePUTRecordStore)
 	r.PUT("/cache/update", handlePUTUpdateCache)
 	r.GET("/cache/info", handleGETCacheInfo)
+	r.GET("/auth/redirect", handleAuthRedirect)
 }
 
 func handleGETBookLookup(c *gin.Context) {

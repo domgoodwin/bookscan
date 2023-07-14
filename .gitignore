@@ -3,3 +3,4 @@ bookscan
 bookscan.exe
 .vscode/*
 secrets.sh
+./scripts/secrets.sh
