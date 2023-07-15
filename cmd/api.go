@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/domgoodwin/bookscan/database"
@@ -17,10 +18,12 @@ import (
 )
 
 var port string
+var tlsPort string
 
 func init() {
 	rootCmd.AddCommand(apiCmd)
 	apiCmd.PersistentFlags().StringVar(&port, "port", "8443", "Port for API server to listen on")
+	apiCmd.PersistentFlags().StringVar(&tlsPort, "tlsPort", "", "Port for API server to listen on with TLS certs")
 }
 
 var apiCmd = &cobra.Command{
@@ -33,9 +36,18 @@ var apiCmd = &cobra.Command{
 		}
 		r := gin.Default()
 		setupRoutes(r)
-		notion.SetupClient()
-		store.SetupStore()
+		// notion.SetupClient()
+		// store.SetupStore()
+
+		// TLS handler if port set
+		if tlsPort != "" {
+			certFolder := os.Getenv("CERT_FOLDER")
+			certName := os.Getenv("CERT_NAME")
+			keyName := os.Getenv("KEY_NAME")
+			r.RunTLS(fmt.Sprintf("0.0.0.0:%s", port), certFolder+certName, certFolder+keyName)
+		}
 		r.Run(fmt.Sprintf("0.0.0.0:%s", port))
+
 	},
 }
 
@@ -50,6 +62,7 @@ func setupRoutes(r *gin.Engine) {
 	r.PUT("/cache/update", handlePUTUpdateCache)
 	r.GET("/cache/info", handleGETCacheInfo)
 	r.GET("/auth/redirect", handleAuthRedirect)
+	r.GET("/auth", handleAuth)
 }
 
 func handleGETBookLookup(c *gin.Context) {

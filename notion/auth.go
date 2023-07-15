@@ -7,13 +7,11 @@ import (
 	"github.com/jomei/notionapi"
 )
 
-var authClient *notionapi.AuthenticationClient
-
 func GetToken(ctx context.Context, code string) (string, error) {
-	if authClient == nil {
-		authClient = &notionapi.AuthenticationClient{}
+	if client == nil {
+		SetupClient()
 	}
-	rsp, err := authClient.CreateToken(ctx, &notionapi.TokenCreateRequest{
+	rsp, err := client.Authentication.CreateToken(ctx, &notionapi.TokenCreateRequest{
 		Code: code,
 	})
 	if err != nil {

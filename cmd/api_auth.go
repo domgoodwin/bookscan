@@ -2,10 +2,15 @@ package cmd
 
 import (
 	"net/http"
+	"os"
 
 	"github.com/domgoodwin/bookscan/notion"
 	"github.com/gin-gonic/gin"
 )
+
+func handleAuth(c *gin.Context) {
+	c.Redirect(http.StatusFound, os.Getenv("NOTION_AUTH_URL"))
+}
 
 func handleAuthRedirect(c *gin.Context) {
 	code := c.Query("code")

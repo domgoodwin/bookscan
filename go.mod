@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/faiface/beep v1.1.0
 	github.com/gin-gonic/gin v1.9.1
-	github.com/jomei/notionapi v1.12.1
+	github.com/jomei/notionapi v1.12.3
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.6.1
 	github.com/spf13/viper v1.15.0
