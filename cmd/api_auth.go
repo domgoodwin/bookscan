@@ -6,6 +6,7 @@ import (
 
 	"github.com/domgoodwin/bookscan/notion"
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
 func handleAuth(c *gin.Context) {
@@ -17,6 +18,7 @@ func handleAuthRedirect(c *gin.Context) {
 
 	accessToken, err := notion.GetToken(c, code)
 	if err != nil {
+		logrus.Error(err)
 		c.JSON(mapErrorToCode(err), gin.H{
 			"error": err.Error(),
 		})
