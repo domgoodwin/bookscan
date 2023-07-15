@@ -25,13 +25,19 @@ type NotionToken struct {
 func SaveToken(ctx context.Context, user *User, token *NotionToken) error {
 	logrus.Infof("saving token in database, user:%v token:%v", user.ID, token.AccessToken)
 	// Check user exists, if not create
-	if exists, _ := UserExists(ctx, user.ID); !exists {
+	exists, err := UserExists(ctx, user.ID)
+	if err != nil {
+		logrus.Error("error checking if user exists")
+		return err
+	}
+	if !exists {
 		err := CreateUser(ctx, user)
 		if err != nil {
+			logrus.Error("error creating user")
 			return err
 		}
 	}
 
-	_, err := db.NewInsert().Model(token).Exec(ctx)
+	_, err = db.NewInsert().Model(token).Exec(ctx)
 	return err
 }
