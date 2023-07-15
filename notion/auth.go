@@ -40,7 +40,7 @@ func GetToken(ctx context.Context, code string) (string, error) {
 		},
 	)
 	if err != nil {
-		logrus.Error(err)
+		
 		return "", err
 	}
 	return rsp.AccessToken, nil

@@ -20,9 +20,9 @@ type RecordStorer struct {
 func (s *RecordStorer) Setup() {
 	s.records = make(map[string]map[string]*items.Record)
 
-	for _, id := range []string{"0821a1067b414e19923c4371250c8128"} {
-		s.LoadRecordsFromNotion(context.Background(), id)
-	}
+	// for _, id := range []string{"0821a1067b414e19923c4371250c8128"} {
+	// 	s.LoadRecordsFromNotion(context.Background(), id)
+	// }
 }
 
 func (s *RecordStorer) StoreItem(databaseID string, r *items.Record) bool {

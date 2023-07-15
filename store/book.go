@@ -19,9 +19,9 @@ type BookStorer struct {
 
 func (s *BookStorer) Setup() {
 	s.books = make(map[string]map[string]*items.Book)
-	for _, id := range []string{"4f311bbe86ce4dd4bdae93fa1206328f", "7b929608b3dc460c98d804e20de882c2"} {
-		s.LoadBooksFromNotion(context.Background(), id)
-	}
+	// for _, id := range []string{"4f311bbe86ce4dd4bdae93fa1206328f", "7b929608b3dc460c98d804e20de882c2"} {
+	// 	s.LoadBooksFromNotion(context.Background(), id)
+	// }
 }
 
 func (s *BookStorer) StoreItem(databaseID string, b *items.Book) bool {

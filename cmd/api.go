@@ -36,8 +36,8 @@ var apiCmd = &cobra.Command{
 		}
 		r := gin.Default()
 		setupRoutes(r)
-		// notion.SetupClient()
-		// store.SetupStore()
+		notion.SetupClient()
+		store.SetupStore()
 
 		// TLS handler if port set
 		if tlsPort != "" {
