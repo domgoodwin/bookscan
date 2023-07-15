@@ -5,16 +5,19 @@ import (
 
 	"github.com/domgoodwin/bookscan/database"
 	"github.com/jomei/notionapi"
+	"github.com/sirupsen/logrus"
 )
 
 func GetToken(ctx context.Context, code string) (string, error) {
 	if client == nil {
 		SetupClient()
 	}
+	logrus.Infof("Creating token %v", code)
 	rsp, err := client.Authentication.CreateToken(ctx, &notionapi.TokenCreateRequest{
 		Code: code,
 	})
 	if err != nil {
+		logrus.Error(err)
 		return "", err
 	}
 	userOwner := rsp.Owner.(notionapi.User)
@@ -37,6 +40,7 @@ func GetToken(ctx context.Context, code string) (string, error) {
 		},
 	)
 	if err != nil {
+		logrus.Error(err)
 		return "", err
 	}
 	return rsp.AccessToken, nil

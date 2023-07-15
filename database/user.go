@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 
+	"github.com/sirupsen/logrus"
 	"github.com/uptrace/bun"
 )
 
@@ -28,6 +29,7 @@ func GetUserByID(ctx context.Context, id string) (*User, error) {
 }
 
 func CreateUser(ctx context.Context, user *User) error {
+	logrus.Infof("creating user in database, user:%v", user.ID)
 	_, err := db.NewUpdate().Model(user).Exec(ctx)
 	return err
 }

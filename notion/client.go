@@ -4,12 +4,14 @@ import (
 	"os"
 
 	"github.com/jomei/notionapi"
+	"github.com/sirupsen/logrus"
 )
 
 var client *notionapi.Client
 
 func SetupClient() {
 	if client == nil {
+		logrus.Info("Setting up DB client")
 		// apiKey := os.Getenv("NOTION_API_KEY")
 		// if apiKey == "" {
 		// 	panic("NOTION_API_KEY is not set")

@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 
+	"github.com/sirupsen/logrus"
 	"github.com/uptrace/bun"
 )
 
@@ -22,6 +23,7 @@ type NotionToken struct {
 }
 
 func SaveToken(ctx context.Context, user *User, token *NotionToken) error {
+	logrus.Infof("saving token in database, user:%v token:%v", user.ID, token.AccessToken)
 	// Check user exists, if not create
 	if exists, _ := UserExists(ctx, user.ID); !exists {
 		err := CreateUser(ctx, user)

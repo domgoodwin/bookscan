@@ -6,6 +6,7 @@ import (
 
 	"github.com/domgoodwin/bookscan/items"
 	"github.com/jomei/notionapi"
+	"github.com/sirupsen/logrus"
 )
 
 func GetBookPagesFromDatabase(ctx context.Context, databaseID string) ([]*items.Book, string, error) {
@@ -15,12 +16,12 @@ func GetBookPagesFromDatabase(ctx context.Context, databaseID string) ([]*items.
 	var books []*items.Book
 	var nextCursor notionapi.Cursor
 	for {
-
 		rsp, err := client.Database.Query(ctx, notionapi.DatabaseID(databaseID), &notionapi.DatabaseQueryRequest{
 			PageSize:    100,
 			StartCursor: nextCursor,
 		})
 		if err != nil {
+			logrus.Error(err)
 			return nil, "", err
 		}
 
