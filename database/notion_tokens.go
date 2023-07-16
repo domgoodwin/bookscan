@@ -20,6 +20,9 @@ type NotionToken struct {
 	WorkspaceIcon        string `bun:"workspace_icon"`
 	WorkspaceID          string `bun:"workspace_id"`
 	WorkspaceName        string `bun:"workspace_name"`
+
+	BookDatabaseID   string `bun:"book_database_id"`
+	RecordDatabaseID string `bun:"record_database_id"`
 }
 
 func SaveToken(ctx context.Context, user *User, token *NotionToken) error {

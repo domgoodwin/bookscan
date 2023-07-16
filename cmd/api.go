@@ -17,11 +17,13 @@ import (
 )
 
 const (
-	headerUserID          = "Bookscan-User-Id"
-	headerAPIToken        = "Bookscan-Token"
-	contextKeyNotionToken = "NOTION_TOKEN"
-	contextKeyNotionPage  = "NOTION_PAGE"
-	contextKeyUserID      = "USER_ID"
+	headerUserID                      = "Bookscan-User-Id"
+	headerAPIToken                    = "Bookscan-Token"
+	contextKeyNotionToken             = "NOTION_TOKEN"
+	contextKeyNotionPage              = "NOTION_PAGE"
+	contextKeyUserID                  = "USER_ID"
+	contextKeyNotionBooksDatabaseID   = "NOTION_BOOKS_DATABASE_ID"
+	contextKeyNotionRecordsDatabaseID = "NOTION_RECORDS_DATABASE_ID"
 )
 
 var port string
@@ -110,6 +112,8 @@ func getNotionToken(c *gin.Context) {
 	c.Set(contextKeyNotionToken, token.AccessToken)
 	c.Set(contextKeyNotionPage, token.DuplicatedTemplateID)
 	c.Set(contextKeyUserID, userID)
+	c.Set(contextKeyNotionBooksDatabaseID, token.BookDatabaseID)
+	c.Set(contextKeyNotionRecordsDatabaseID, token.RecordDatabaseID)
 }
 
 func getHeader(c *gin.Context, name string) string {
@@ -137,12 +141,20 @@ func mapErrorToCode(err error) int {
 func notionClient(c *gin.Context) *notion.NotionClient {
 	userIDAny, _ := c.Get(contextKeyUserID)
 	userID := userIDAny.(string)
+
 	notionTokenAny, _ := c.Get(contextKeyNotionToken)
 	notionToken := notionTokenAny.(string)
+
 	notionPageAny, _ := c.Get(contextKeyNotionPage)
 	notionPage := notionPageAny.(string)
 
+	notionBooksDatabaseIDAny, _ := c.Get(contextKeyNotionBooksDatabaseID)
+	notionBooksDatabaseID := notionBooksDatabaseIDAny.(string)
+
+	notionRecordsDatabaseIDAny, _ := c.Get(contextKeyNotionRecordsDatabaseID)
+	notionRecordsDatabaseID := notionRecordsDatabaseIDAny.(string)
+
 	notionClient := notion.GetClient(notionToken)
-	return &notion.NotionClient{notionClient, notionToken, userID, notionPage}
+	return &notion.NotionClient{notionClient, notionToken, userID, notionPage, notionBooksDatabaseID, notionRecordsDatabaseID}
 
 }

@@ -12,7 +12,9 @@ func GetClient(token string) *notionapi.Client {
 
 type NotionClient struct {
 	*notionapi.Client
-	Token      string
-	UserID     string
-	DatabaseID string
+	Token             string
+	UserID            string
+	PageID            string
+	BooksDatabaseID   string
+	RecordsDatabaseID string
 }

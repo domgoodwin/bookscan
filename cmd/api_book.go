@@ -5,14 +5,12 @@ import (
 
 	"github.com/domgoodwin/bookscan/items"
 	"github.com/domgoodwin/bookscan/lookup"
-	"github.com/domgoodwin/bookscan/store"
 	"github.com/gin-gonic/gin"
 )
 
 func handleGETBookLookup(c *gin.Context) {
 	isbn := c.Query("isbn")
-	dbID := c.Query("database_id")
-	book, found, err := lookupISBN(dbID, isbn)
+	book, found, err := lookupISBN(isbn)
 	if err != nil {
 		c.JSON(mapErrorToCode(err), gin.H{
 			"error": err.Error(),
@@ -26,9 +24,11 @@ func handleGETBookLookup(c *gin.Context) {
 	})
 }
 
-func lookupISBN(notionDatabaseID, isbn string) (*items.Book, bool, error) {
+func lookupISBN(isbn string) (*items.Book, bool, error) {
 	var err error
-	book, found := store.BookStore.CheckIfItemInCache(notionDatabaseID, isbn)
+	// book, found := store.BookStore.CheckIfItemInCache(notionDatabaseID, isbn)
+	var book *items.Book
+	found := false
 	if !found {
 		book, err = lookup.LookupISBN(isbn)
 		if err != nil {
@@ -46,7 +46,7 @@ func handlePUTBookStore(c *gin.Context) {
 		return
 	}
 
-	book, found, err := lookupISBN(req.NotionDatabaseID, req.ISBN)
+	book, found, err := lookupISBN(req.ISBN)
 	if err != nil {
 		c.JSON(mapErrorToCode(err), gin.H{
 			"error": err.Error(),
@@ -55,12 +55,12 @@ func handlePUTBookStore(c *gin.Context) {
 
 	url := ""
 	if !found {
-		url, err = notionClient(c).AddBookToDatabase(c, book, req.NotionDatabaseID)
+		url, err = notionClient(c).AddBookToDatabase(c, book)
 		if err != nil {
 			errorResponse(c, err)
 			return
 		}
-		store.BookStore.StoreItem(req.NotionDatabaseID, book)
+		// store.BookStore.StoreItem(, book)
 	}
 
 	c.JSON(http.StatusOK, map[string]interface{}{
@@ -71,6 +71,5 @@ func handlePUTBookStore(c *gin.Context) {
 }
 
 type putBookRequest struct {
-	ISBN             string `json:"isbn" binding:"required"`
-	NotionDatabaseID string `json:"notion_database_id"`
+	ISBN string `json:"isbn" binding:"required"`
 }

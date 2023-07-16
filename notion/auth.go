@@ -23,6 +23,14 @@ func GetToken(ctx context.Context, code, redirectURI string) (string, string, er
 	logrus.Debug(rsp)
 	logrus.Debug(rsp.Owner)
 	userID := rsp.Owner.User.ID
+
+	client := &NotionClient{GetClient(rsp.AccessToken), rsp.AccessToken, userID, rsp.DuplicatedTemplateID, "", ""}
+	bookDB, recordDB, err := client.GetDatabaseIDs(ctx, rsp.DuplicatedTemplateID)
+	if err != nil {
+		logrus.Error("error getting database IDs")
+		return "", "", err
+	}
+
 	err = database.SaveToken(ctx,
 		&database.User{
 			ID:          userID,
@@ -39,6 +47,8 @@ func GetToken(ctx context.Context, code, redirectURI string) (string, string, er
 			WorkspaceIcon:        rsp.WorkspaceIcon,
 			WorkspaceID:          rsp.WorkspaceID,
 			WorkspaceName:        rsp.WorkspaceName,
+			BookDatabaseID:       bookDB,
+			RecordDatabaseID:     recordDB,
 		},
 	)
 	if err != nil {

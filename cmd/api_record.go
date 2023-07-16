@@ -5,15 +5,13 @@ import (
 
 	"github.com/domgoodwin/bookscan/items"
 	"github.com/domgoodwin/bookscan/lookup"
-	"github.com/domgoodwin/bookscan/store"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
 
 func handleGETRecordLookup(c *gin.Context) {
 	isbn := c.Query("barcode")
-	dbID := c.Query("database_id")
-	record, found, err := lookupRecordBarcode(dbID, isbn)
+	record, found, err := lookupRecordBarcode(isbn)
 	if err != nil {
 		c.JSON(mapErrorToCode(err), gin.H{
 			"error": err.Error(),
@@ -27,9 +25,11 @@ func handleGETRecordLookup(c *gin.Context) {
 	})
 }
 
-func lookupRecordBarcode(notionDatabaseID, barcode string) (*items.Record, bool, error) {
+func lookupRecordBarcode(barcode string) (*items.Record, bool, error) {
 	var err error
-	record, found := store.RecordStore.CheckIfItemInCache(notionDatabaseID, barcode)
+	// record, found := store.RecordStore.CheckIfItemInCache(notionDatabaseID, barcode)
+	var record *items.Record
+	found := false
 	if !found {
 		logrus.Infof("record not found in cache: %v", barcode)
 		record, err = lookup.LookupRecordBarcode(barcode)
@@ -50,7 +50,7 @@ func handlePUTRecordStore(c *gin.Context) {
 		return
 	}
 
-	record, found, err := lookupRecordBarcode(req.NotionDatabaseID, req.Barcode)
+	record, found, err := lookupRecordBarcode(req.Barcode)
 	if err != nil {
 		c.JSON(mapErrorToCode(err), gin.H{
 			"error": err.Error(),
@@ -60,12 +60,12 @@ func handlePUTRecordStore(c *gin.Context) {
 
 	url := ""
 	if !found {
-		url, err = notionClient(c).AddRecordToDatabase(c, record, req.NotionDatabaseID)
+		url, err = notionClient(c).AddRecordToDatabase(c, record)
 		if err != nil {
 			errorResponse(c, err)
 			return
 		}
-		store.RecordStore.StoreItem(req.NotionDatabaseID, record)
+		// store.RecordStore.StoreItem(record)
 	}
 
 	c.JSON(http.StatusOK, map[string]interface{}{
@@ -76,6 +76,5 @@ func handlePUTRecordStore(c *gin.Context) {
 }
 
 type putRecordRequest struct {
-	Barcode          string `json:"barcode" binding:"required"`
-	NotionDatabaseID string `json:"notion_database_id"`
+	Barcode string `json:"barcode" binding:"required"`
 }
