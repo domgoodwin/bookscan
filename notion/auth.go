@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/domgoodwin/bookscan/database"
 	"github.com/sirupsen/logrus"
@@ -23,6 +24,9 @@ func GetToken(ctx context.Context, code, redirectURI string) (string, string, er
 	logrus.Debug(rsp)
 	logrus.Debug(rsp.Owner)
 	userID := rsp.Owner.User.ID
+
+	logrus.Info("Waiting for 2s for page to be created")
+	time.Sleep(time.Second * 2)
 
 	client := &NotionClient{GetClient(rsp.AccessToken), rsp.AccessToken, userID, rsp.DuplicatedTemplateID, "", ""}
 	bookDB, recordDB, err := client.GetDatabaseIDs(ctx, rsp.DuplicatedTemplateID)
