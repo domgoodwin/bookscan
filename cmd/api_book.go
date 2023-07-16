@@ -59,7 +59,7 @@ func handlePUTBookStore(c *gin.Context) {
 			errorResponse(c, err)
 			return
 		}
-		// store.BookStore.StoreItem(, book)
+		store.BookStore.StoreItem(getContextValue(c, contextKeyNotionBooksDatabaseID), book)
 	}
 
 	c.JSON(http.StatusOK, map[string]interface{}{

@@ -64,7 +64,7 @@ func handlePUTRecordStore(c *gin.Context) {
 			errorResponse(c, err)
 			return
 		}
-		// store.RecordStore.StoreItem(record)
+		store.RecordStore.StoreItem(getContextValue(c, contextKeyNotionRecordsDatabaseID), record)
 	}
 
 	c.JSON(http.StatusOK, map[string]interface{}{
