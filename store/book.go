@@ -1,11 +1,7 @@
 package store
 
 import (
-	"context"
-	"os"
-
 	"github.com/domgoodwin/bookscan/items"
-	"github.com/domgoodwin/bookscan/notion"
 	"github.com/sirupsen/logrus"
 )
 
@@ -60,22 +56,22 @@ func (s *BookStorer) DatabaseID() string {
 	return s.databaseID
 }
 
-func (s *BookStorer) LoadBooksFromNotion(ctx context.Context, databaseID string) error {
-	if os.Getenv("NOTION_CACHE") == "false" {
-		logrus.Info("Notion cache disabled")
-		return nil
-	}
-	books, databaseID, err := notion.GetBookPagesFromDatabase(ctx, databaseID)
-	if err != nil {
-		return err
-	}
-	for _, b := range books {
-		s.StoreItem(databaseID, b)
-	}
-	logrus.Infof("Loaded %v books from Notion:%v", len(books), databaseID)
-	s.databaseID = databaseID
-	return nil
-}
+// func (s *BookStorer) LoadBooksFromNotion(ctx context.Context, databaseID string) error {
+// 	if os.Getenv("NOTION_CACHE") == "false" {
+// 		logrus.Info("Notion cache disabled")
+// 		return nil
+// 	}
+// 	books, databaseID, err := notion.GetBookPagesFromDatabase(ctx, databaseID)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	for _, b := range books {
+// 		s.StoreItem(databaseID, b)
+// 	}
+// 	logrus.Infof("Loaded %v books from Notion:%v", len(books), databaseID)
+// 	s.databaseID = databaseID
+// 	return nil
+// }
 
 func removeQuotes(in string) string {
 	return in[1 : len(in)-1]

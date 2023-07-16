@@ -15,8 +15,9 @@ func handleAuth(c *gin.Context) {
 
 func handleAuthRedirect(c *gin.Context) {
 	code := c.Query("code")
+	redirectURI := c.Query("redirect_uri")
 
-	accessToken, err := notion.GetToken(c, code)
+	userID, apiToken, err := notion.GetToken(c, code, redirectURI)
 	if err != nil {
 		logrus.Error(err)
 		c.JSON(mapErrorToCode(err), gin.H{
@@ -26,6 +27,7 @@ func handleAuthRedirect(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, map[string]interface{}{
-		"access_token": accessToken,
+		"user_id":   userID,
+		"api_token": apiToken,
 	})
 }

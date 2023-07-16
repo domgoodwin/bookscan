@@ -38,6 +38,34 @@ func SaveToken(ctx context.Context, user *User, token *NotionToken) error {
 		}
 	}
 
-	_, err = db.NewInsert().Model(token).Exec(ctx)
+	exists, err = NotionTokenExists(ctx, token.BotID)
+	if err != nil {
+		logrus.Error("error checking if token exists")
+		return err
+	}
+	if !exists {
+		_, err = db.NewInsert().Model(token).Exec(ctx)
+		if err != nil {
+			logrus.Error("error creating notion token")
+			return err
+		}
+		return nil
+	}
+
+	_, err = db.NewUpdate().Model(token).Where("id = ?", token.BotID).Exec(ctx)
 	return err
+}
+
+func GetNotionTokenByUserID(ctx context.Context, userID string) (*NotionToken, error) {
+	notionToken := new(NotionToken)
+	err := db.NewSelect().Model(notionToken).Where("user_id = ?", userID).Scan(ctx)
+	if err != nil {
+		logrus.Error("error selecting token")
+		return nil, err
+	}
+	return notionToken, nil
+}
+func NotionTokenExists(ctx context.Context, id string) (bool, error) {
+	notionToken := new(NotionToken)
+	return db.NewSelect().Model(notionToken).Where("id = ?", id).Exists(ctx)
 }

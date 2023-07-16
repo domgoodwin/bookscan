@@ -25,10 +25,10 @@ const (
 	columnBarcode = "Barcode"
 )
 
-func AddBookToDatabase(ctx context.Context, book *items.Book, databaseID string) (string, error) {
+func (c *NotionClient) AddBookToDatabase(ctx context.Context, book *items.Book, databaseID string) (string, error) {
 
 	// Check Book doesn't exist
-	notionBook, notionURL, err := GetBookPageFromISBN(ctx, databaseID, book.ISBN)
+	notionBook, notionURL, err := c.GetBookPageFromISBN(ctx, databaseID, book.ISBN)
 	if err != nil {
 		logrus.Error(err)
 		return "", err
@@ -55,7 +55,7 @@ func AddBookToDatabase(ctx context.Context, book *items.Book, databaseID string)
 			},
 		}
 	}
-	page, err := client.Page.Create(ctx, &notionapi.PageCreateRequest{
+	page, err := c.Page.Create(ctx, &notionapi.PageCreateRequest{
 		Parent: notionapi.Parent{
 			Type:       notionapi.ParentTypeDatabaseID,
 			DatabaseID: notionapi.DatabaseID(databaseID),
@@ -71,7 +71,7 @@ func AddBookToDatabase(ctx context.Context, book *items.Book, databaseID string)
 	return page.URL, nil
 }
 
-func AddRecordToDatabase(ctx context.Context, record *items.Record, databaseID string) (string, error) {
+func (c *NotionClient) AddRecordToDatabase(ctx context.Context, record *items.Record, databaseID string) (string, error) {
 	if record == nil {
 		return "", errors.New("nil record")
 	}
@@ -93,7 +93,7 @@ func AddRecordToDatabase(ctx context.Context, record *items.Record, databaseID s
 			},
 		}
 	}
-	page, err := client.Page.Create(ctx, &notionapi.PageCreateRequest{
+	page, err := c.Page.Create(ctx, &notionapi.PageCreateRequest{
 		Parent: notionapi.Parent{
 			Type:       notionapi.ParentTypeDatabaseID,
 			DatabaseID: notionapi.DatabaseID(databaseID),

@@ -20,6 +20,7 @@ var db *bun.DB
 var databaseModels = map[string]interface{}{
 	"notion_tokens": &NotionToken{},
 	"users":         &User{},
+	"api_auth":      &ApiAuth{},
 }
 
 func Setup() error {

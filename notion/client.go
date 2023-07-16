@@ -1,28 +1,18 @@
 package notion
 
 import (
-	"os"
-
 	"github.com/jomei/notionapi"
 	"github.com/sirupsen/logrus"
 )
 
-var client *notionapi.Client
+func GetClient(token string) *notionapi.Client {
+	logrus.Info("Setting up notion client")
+	return notionapi.NewClient(notionapi.Token(token))
+}
 
-func SetupClient() {
-	if client == nil {
-		logrus.Info("Setting up DB client")
-		// apiKey := os.Getenv("NOTION_API_KEY")
-		// if apiKey == "" {
-		// 	panic("NOTION_API_KEY is not set")
-		// }
-		clientID := os.Getenv("NOTION_OAUTH_CLIENT_ID")
-		clientSecret := os.Getenv("NOTION_OAUTH_CLIENT_SECRET")
-		if clientID == "" || clientSecret == "" {
-			panic("client id and secret must be set")
-		}
-		client = notionapi.NewClient(notionapi.Token("placeholder"),
-			notionapi.WithOAuthAppCredentials(clientID, clientSecret),
-		)
-	}
+type NotionClient struct {
+	*notionapi.Client
+	Token      string
+	UserID     string
+	DatabaseID string
 }

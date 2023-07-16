@@ -4,3 +4,5 @@ bookscan.exe
 .vscode/*
 secrets.sh
 ./scripts/secrets.sh
+*.crt
+*.key

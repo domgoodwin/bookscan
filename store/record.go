@@ -1,11 +1,7 @@
 package store
 
 import (
-	"context"
-	"os"
-
 	"github.com/domgoodwin/bookscan/items"
-	"github.com/domgoodwin/bookscan/notion"
 	"github.com/sirupsen/logrus"
 )
 
@@ -61,19 +57,19 @@ func (s *RecordStorer) DatabaseID() string {
 	return s.databaseID
 }
 
-func (s *RecordStorer) LoadRecordsFromNotion(ctx context.Context, databaseID string) error {
-	if os.Getenv("NOTION_CACHE") == "false" {
-		logrus.Info("Notion cache disabled")
-		return nil
-	}
-	records, databaseID, err := notion.GetRecordPagesFromDatabase(ctx, databaseID)
-	if err != nil {
-		return err
-	}
-	for _, r := range records {
-		s.StoreItem(databaseID, r)
-	}
-	logrus.Infof("Loaded %v records from Notion:%v", len(records), databaseID)
-	s.databaseID = databaseID
-	return nil
-}
+// func (s *RecordStorer) LoadRecordsFromNotion(ctx context.Context, databaseID string) error {
+// 	if os.Getenv("NOTION_CACHE") == "false" {
+// 		logrus.Info("Notion cache disabled")
+// 		return nil
+// 	}
+// 	records, databaseID, err := notion.GetRecordPagesFromDatabase(ctx, databaseID)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	for _, r := range records {
+// 		s.StoreItem(databaseID, r)
+// 	}
+// 	logrus.Infof("Loaded %v records from Notion:%v", len(records), databaseID)
+// 	s.databaseID = databaseID
+// 	return nil
+// }
