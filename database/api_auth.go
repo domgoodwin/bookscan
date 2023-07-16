@@ -49,6 +49,16 @@ func CheckAPIToken(ctx context.Context, userID, token string) (bool, error) {
 	return apiAuth.Token == token, nil
 }
 
+func ListNotionTokens(ctx context.Context) ([]NotionToken, error) {
+	notionTokens := new([]NotionToken)
+	err := db.NewSelect().Model(notionTokens).Scan(ctx)
+	if err != nil {
+		logrus.Error("error listing API tokens")
+		return nil, err
+	}
+	return *notionTokens, nil
+}
+
 func generateSecureToken(length int) string {
 	b := make([]byte, length)
 	if _, err := rand.Read(b); err != nil {

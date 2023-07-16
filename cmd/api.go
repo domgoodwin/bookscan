@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -39,13 +40,17 @@ var apiCmd = &cobra.Command{
 	Use:   "api",
 	Short: "Start an API server",
 	Run: func(cmd *cobra.Command, args []string) {
+		ctx := context.Background()
 		err := database.Setup()
 		if err != nil {
 			panic(err)
 		}
 		r := gin.Default()
 		setupRoutes(r)
-		store.SetupStore()
+		err = store.SetupStore(ctx)
+		if err != nil {
+			panic(err)
+		}
 
 		// TLS handler if port set
 		if tlsPort != "" {
@@ -139,22 +144,18 @@ func mapErrorToCode(err error) int {
 }
 
 func notionClient(c *gin.Context) *notion.NotionClient {
-	userIDAny, _ := c.Get(contextKeyUserID)
-	userID := userIDAny.(string)
-
-	notionTokenAny, _ := c.Get(contextKeyNotionToken)
-	notionToken := notionTokenAny.(string)
-
-	notionPageAny, _ := c.Get(contextKeyNotionPage)
-	notionPage := notionPageAny.(string)
-
-	notionBooksDatabaseIDAny, _ := c.Get(contextKeyNotionBooksDatabaseID)
-	notionBooksDatabaseID := notionBooksDatabaseIDAny.(string)
-
-	notionRecordsDatabaseIDAny, _ := c.Get(contextKeyNotionRecordsDatabaseID)
-	notionRecordsDatabaseID := notionRecordsDatabaseIDAny.(string)
+	userID := getContextValue(c, contextKeyUserID)
+	notionToken := getContextValue(c, contextKeyNotionToken)
+	notionPage := getContextValue(c, contextKeyNotionPage)
+	notionBooksDatabaseID := getContextValue(c, contextKeyNotionBooksDatabaseID)
+	notionRecordsDatabaseID := getContextValue(c, contextKeyNotionRecordsDatabaseID)
 
 	notionClient := notion.GetClient(notionToken)
 	return &notion.NotionClient{notionClient, notionToken, userID, notionPage, notionBooksDatabaseID, notionRecordsDatabaseID}
 
+}
+
+func getContextValue(c *gin.Context, key string) string {
+	valAny, _ := c.Get(key)
+	return valAny.(string)
 }

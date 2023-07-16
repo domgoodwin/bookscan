@@ -5,13 +5,14 @@ import (
 
 	"github.com/domgoodwin/bookscan/items"
 	"github.com/domgoodwin/bookscan/lookup"
+	"github.com/domgoodwin/bookscan/store"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
 
 func handleGETRecordLookup(c *gin.Context) {
 	isbn := c.Query("barcode")
-	record, found, err := lookupRecordBarcode(isbn)
+	record, found, err := lookupRecordBarcode(c, isbn)
 	if err != nil {
 		c.JSON(mapErrorToCode(err), gin.H{
 			"error": err.Error(),
@@ -25,11 +26,9 @@ func handleGETRecordLookup(c *gin.Context) {
 	})
 }
 
-func lookupRecordBarcode(barcode string) (*items.Record, bool, error) {
+func lookupRecordBarcode(c *gin.Context, barcode string) (*items.Record, bool, error) {
 	var err error
-	// record, found := store.RecordStore.CheckIfItemInCache(notionDatabaseID, barcode)
-	var record *items.Record
-	found := false
+	record, found := store.RecordStore.CheckIfItemInCache(getContextValue(c, contextKeyNotionRecordsDatabaseID), barcode)
 	if !found {
 		logrus.Infof("record not found in cache: %v", barcode)
 		record, err = lookup.LookupRecordBarcode(barcode)
@@ -50,7 +49,7 @@ func handlePUTRecordStore(c *gin.Context) {
 		return
 	}
 
-	record, found, err := lookupRecordBarcode(req.Barcode)
+	record, found, err := lookupRecordBarcode(c, req.Barcode)
 	if err != nil {
 		c.JSON(mapErrorToCode(err), gin.H{
 			"error": err.Error(),

@@ -13,12 +13,8 @@ type RecordStorer struct {
 	databaseID string
 }
 
-func (s *RecordStorer) Setup() {
-	s.records = make(map[string]map[string]*items.Record)
-
-	// for _, id := range []string{"0821a1067b414e19923c4371250c8128"} {
-	// 	s.LoadRecordsFromNotion(context.Background(), id)
-	// }
+func (s *RecordStorer) Setup(in map[string]map[string]*items.Record) {
+	s.records = in
 }
 
 func (s *RecordStorer) StoreItem(databaseID string, r *items.Record) bool {
@@ -56,20 +52,3 @@ func (s *RecordStorer) Length() int {
 func (s *RecordStorer) DatabaseID() string {
 	return s.databaseID
 }
-
-// func (s *RecordStorer) LoadRecordsFromNotion(ctx context.Context, databaseID string) error {
-// 	if os.Getenv("NOTION_CACHE") == "false" {
-// 		logrus.Info("Notion cache disabled")
-// 		return nil
-// 	}
-// 	records, databaseID, err := notion.GetRecordPagesFromDatabase(ctx, databaseID)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	for _, r := range records {
-// 		s.StoreItem(databaseID, r)
-// 	}
-// 	logrus.Infof("Loaded %v records from Notion:%v", len(records), databaseID)
-// 	s.databaseID = databaseID
-// 	return nil
-// }
