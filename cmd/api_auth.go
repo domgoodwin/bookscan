@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 
@@ -26,8 +27,9 @@ func handleAuthRedirect(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, map[string]interface{}{
-		"user_id":   userID,
-		"api_token": apiToken,
-	})
+	c.Redirect(http.StatusFound, fmt.Sprintf(
+		"bookscan://auth?api_token=%v&user_id=%v",
+		apiToken,
+		userID,
+	))
 }
